@@ -13,28 +13,34 @@ class ForcastQuery:
     def getStationGridDataFromLatLong(self):
         header = 'User-Agent: (project_lapis_manalis, roboticapostle@gmail.com)'
         url = 'https://api.weather.gov/points/' + self.lat + ',' + self.long
-        gridRequest = requests.get(url, headers = {'User-Agent': '(project_lapis_manalis, roboticapostle@gmail.com)'})
+        gridRequest = requests.get(url, headers = {'User-Agent': '(project_lapis_manalis)'})
         if(gridRequest.status_code == 200):
             requestRet = json.loads(gridRequest.text)
             self.gridX = requestRet["properties"]["gridX"]
             self.gridY = requestRet["properties"]["gridY"]
             self.gridId = requestRet["properties"]["gridId"]
             self.forcastUrl = requestRet["properties"]["forecast"]
+            return True
         else:
             print('Request for lat and long returned error code: ' + str(gridRequest.status_code))
+            return False
     
     def query(self):
         # First we need the to convert lat and long to grid points and get additonal data for those points.
         if self.gridX == None and self.gridY == None:
-           self.getStationGridDataFromLatLong()
+           if(self.getStationGridDataFromLatLong() == False):
+               print("Query failed")
+               return False
 
         header = 'User-Agent: (project_lapis_manalis, roboticapostle@gmail.com)'
         forcastRequest = requests.get(self.forcastUrl, headers = {'User-Agent': '(project_lapis_manalis, roboticapostle@gmail.com)'})
         if(forcastRequest.status_code == 200):
             print(forcastRequest.text)
             self.forcastDict = json.loads(forcastRequest.text)
+            return True
         else:
             print('Request for lat and long returned error code: ' + str(forcastRequest.status_code))
+            return False
 
 # Testing function for this class
 if __name__ == "__main__":
@@ -63,5 +69,5 @@ if __name__ == "__main__":
             else:
                 print("Invalid selection: enter y or n")
                 isSelectionMade = False
-        forcast = ForcastQuery(lat,long)
-        forcast.query()
+    forcast = ForcastQuery(lat,long)
+    forcast.query()
