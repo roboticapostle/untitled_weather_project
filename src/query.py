@@ -5,8 +5,7 @@ class Forcast:
     def __init__(self, lat, long):
     	self.lat = lat
     	self.long = long
-    	self.gridX = self.gridY = None
-    	self.queryURL = "https://api.weather.gov/"
+    	self.forcastUrl = self.gridId = self.gridX = self.gridY = None
   
     #def parseQuery(self):
 
@@ -14,7 +13,7 @@ class Forcast:
     #def getQueryResult(self):
 
     
-    def convertLatLongToGridPoints(self):
+    def getStationGridDataFromLatLong(self):
         header = 'User-Agent: (project_lapis_manalis, roboticapostle@gmail.com)'
         url = 'https://api.weather.gov/points/' + self.lat + ',' + self.long
         gridRequest = requests.get(url, headers = {'User-Agent': '(project_lapis_manalis, roboticapostle@gmail.com)'})
@@ -22,13 +21,23 @@ class Forcast:
             requestRet = json.loads(gridRequest.text)
             self.gridX = requestRet["properties"]["gridX"]
             self.gridY = requestRet["properties"]["gridY"]
+            self.gridId = requestRet["properties"]["gridId"]
+            self.forcastUrl = requestRet["properties"]["forecast"]
         else:
             print('Request for lat and long returned error code: ' + str(gridRequest.status_code))
 
     
     def query(self):
+        # First we need the to convert lat and long to grid points and get additonal data for those points.
         if self.gridX == None and self.gridY == None:
-           self.convertLatLongToGridPoints()
+           self.getStationGridDataFromLatLong()
+
+        header = 'User-Agent: (project_lapis_manalis, roboticapostle@gmail.com)'
+        gridRequest = requests.get(self.forcastUrl, headers = {'User-Agent': '(project_lapis_manalis, roboticapostle@gmail.com)'})
+        if(gridRequest.status_code == 200):
+            print(gridRequest.text)
+        else:
+            print('Request for lat and long returned error code: ' + str(gridRequest.status_code))
 
 # Testing function for this class
 if __name__ == "__main__":
